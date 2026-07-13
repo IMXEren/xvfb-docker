@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+
+: "${DISPLAY:=:0}"
+: "${GEOMETRY:=1920x1080x24}"
+: "${XVFB_ARGS:=-ac -listen tcp}"
+
+eval "xvfb_args=($XVFB_ARGS)"
+Xvfb "$DISPLAY" -screen 0 "$GEOMETRY" "${xvfb_args[@]}" &
+xvfb_pid="$!"
+
+for i in $(seq 1 10); do
+    if [ -e "/tmp/.X11-unix/X${DISPLAY#:}" ]; then
+        break
+    fi
+    sleep 0.3
+done
+
+if ! kill -0 "$xvfb_pid" 2>/dev/null; then
+    echo "ERROR: Xvfb failed to start" >&2
+    exit 1
+fi
+
+wait "$xvfb_pid"

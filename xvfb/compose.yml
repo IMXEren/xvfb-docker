@@ -1,0 +1,7 @@
+services:
+  xvfb:
+    build:
+      context: .
+    environment:
+      DISPLAY: ":0"
+      GEOMETRY: "1920x1080x24"
