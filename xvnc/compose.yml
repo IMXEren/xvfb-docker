@@ -1,9 +1,33 @@
 services:
-  xvnc:
-    build:
-      context: .
-    ports:
-      - "5900:5900"
+  display:
+    image: ghcr.io/imxeren/xvnc:main
+    restart: unless-stopped
     environment:
-      VNC_PORT: "5900"
+      DISPLAY: ":99"
       GEOMETRY: "1920x1080x24"
+      VNC_PORT: "5900"
+      X11VNC_ARGS: "-forever -shared -nopw"
+    healthcheck:
+      test: ["CMD-SHELL", "test -S /tmp/.X11-unix/X99"]
+      interval: 1s
+      timeout: 2s
+      retries: 10
+      start_period: 2s
+
+  novnc:
+    image: geek1011/easy-novnc
+    restart: always
+    depends_on:
+      display:
+        condition: service_healthy
+    command: -a :5800 -h display --no-url-password
+    ports:
+      - "127.0.0.1:5800:5800"
+
+  app:
+    image: your-app
+    depends_on:
+      display:
+        condition: service_healthy
+    environment:
+      DISPLAY: "display:99"

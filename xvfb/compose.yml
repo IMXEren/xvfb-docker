@@ -1,7 +1,21 @@
 services:
-  xvfb:
-    build:
-      context: .
+  display:
+    image: ghcr.io/imxeren/xvfb:main
+    restart: unless-stopped
     environment:
-      DISPLAY: ":0"
+      DISPLAY: ":99"
       GEOMETRY: "1920x1080x24"
+    healthcheck:
+      test: ["CMD-SHELL", "test -S /tmp/.X11-unix/X99"]
+      interval: 1s
+      timeout: 2s
+      retries: 10
+      start_period: 2s
+
+  app:
+    image: your-app
+    depends_on:
+      display:
+        condition: service_healthy
+    environment:
+      DISPLAY: "display:99"
